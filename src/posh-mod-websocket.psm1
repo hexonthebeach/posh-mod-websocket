@@ -2,7 +2,7 @@
 # PowerShell Module for a WebSocket connection
 ##
 
-$Script:WS = New-Object System.Net.WebSockets.ClientWebSocket
+$Script:WS = $null
 $Script:CT = New-Object System.Threading.CancellationToken
 $script:Conn = $null
 
@@ -22,13 +22,18 @@ Function Connect-Websocket {
         [string]
         $Endpoint
     )
+    
+    # make sure we are not starting too many clients
+    if( (Disconnect-Websocket) -eq $true ){
+        $Script:WS = New-Object System.Net.WebSockets.ClientWebSocket
+    }
 
     $Script:Conn = $Script:WS.ConnectAsync($Endpoint, $Script:CT)
     While (-not $Script:Conn.IsCompleted) {
         Start-Sleep -Milliseconds 100
     }
 
-    return ($Script:WS.State -eq 'Open')
+    return (Test-Websocket)
 }
 
 <#
